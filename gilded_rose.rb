@@ -1,74 +1,58 @@
+class DefaultUpdater
+  def self.update(_item)
+  end
+end
+
+class NormalUpdater
+  def self.update(item)
+    item.sell_in -= 1
+    return if item.quality == 0
+    item.quality -= 1
+    item.quality -= 1 if item.sell_in <= 0
+  end
+end
+
+class BrieUpdater
+  def self.update(item)
+    item.sell_in -= 1
+    item.quality += 1 if item.quality < 50
+    return if item.quality == 50
+    item.quality += 1 if item.sell_in <= 0
+  end
+end
+
+class BackstageUpdater
+  def self.update(item)
+    item.sell_in -= 1
+    return if item.quality >= 50
+    return item.quality = 0 if item.sell_in < 0
+    item.quality += 1
+    item.quality += 1 if item.sell_in < 10
+    item.quality += 1 if item.sell_in < 5
+  end
+end
+
+class ConjureUpdater
+  def self.update(item)
+    item.sell_in -= 1
+    item.quality -= 2
+    return item.quality = 0 if item.quality < 0
+    item.quality -= 2 if item.sell_in <= 0
+  end
+end
+
+UPDATERS = {
+  'NORMAL ITEM'                               => NormalUpdater,
+  'Aged Brie'                                 => BrieUpdater,
+  'Backstage passes to a TAFKAL80ETC concert' => BackstageUpdater,
+  'Conjured Mana Cake'                        => ConjureUpdater
+}.freeze
+
 def update_quality(items)
   items.each do |item|
-    if item.name == 'NORMAL ITEM'
-      update_normal_item_quality(item)
-      next
-    end
-
-    if item.name == 'Aged Brie'
-      update_aged_brie_quality(item)
-      next
-    end
-
-    if item.name == 'Sulfuras'
-      update_sulfuras_quality(item)
-      next
-    end
-
-    if item.name == 'Backstage passes to a TAFKAL80ETC concert'
-      update_backstage_pass_quality(item)
-      next
-    end
+    (UPDATERS[item.name] || DefaultUpdater).update(item)
+    next
   end
-end
-
-def update_normal_item_quality(item)
-  if item.sell_in <= 0
-    item.quality -= 2 if item.quality != 0
-  else
-    item.quality -= 1 if item.quality != 0
-  end
-
-  item.sell_in -= 1
-end
-
-def update_aged_brie_quality(item)
-  if item.sell_in > 0 && item.quality < 50
-    item.quality += 1
-  elsif item.sell_in <= 0
-    if item.quality == 49
-      item.quality +=1
-    elsif item.quality < 50
-      item.quality +=2
-    end
-  end
-
-  item.sell_in -= 1
-end
-
-def update_sulfuras_quality(item)
-end
-
-def update_backstage_pass_quality(item)
-  if item.sell_in > 10
-    item.quality += 1 if item.quality < 50
-  elsif item.sell_in >= 6 && item.sell_in <= 10
-    if item.quality == 49
-      item.quality +=1
-    elsif item.quality < 50
-      item.quality +=2
-    end
-  elsif item.sell_in <= 5 && item.sell_in > 0
-    if item.quality == 49
-      item.quality +=1
-    elsif item.quality < 50
-      item.quality +=3
-    end
-  elsif item.sell_in <= 0
-    item.quality = 0
-  end
-
-  item.sell_in -= 1
 end
 
 # DO NOT CHANGE THINGS BELOW -----------------------------------------
@@ -85,4 +69,3 @@ Item = Struct.new(:name, :sell_in, :quality)
 #   Item.new("Backstage passes to a TAFKAL80ETC concert", 15, 20),
 #   Item.new("Conjured Mana Cake", 3, 6),
 # ]
-
